@@ -1,0 +1,62 @@
+(igdefense) PS C:\Users\p9181\Interpretability-Guided-Defense> python eval.py `
+>>   --arch rn18 `
+>>   --dataset cifar10 `
+>>   --load-model Addepalli2022Efficient_RN18.pt `
+>>   --mask-which loir `
+>>   --layer-name layer4 `
+>>   --important-dim 50 `
+>>   --epsilon 8 `
+>>   --data-dir ./data `
+>>   --batch-size 500 `
+>>   --n-ex 10000
+C:\Users\p9181\anaconda3\envs\igdefense\lib\site-packages\robustbench\loaders.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+Loading IG-def loir model of Addepalli2022Efficient_RN18.pt, retaining only 50 neurons in layer4
+using vanilla forward pass before masking
+Neuron importance loaded with method loir from folder saved_loir_rankings/Addepalli2022Efficient_RN18/layer4
+Loading weights from checkpoints\Addepalli2022Efficient_RN18.pt
+using 10000 for evaluation
+Model: Addepalli2022Efficient_RN18_layer4_loir50, Clean accuracy: 58.86%
+AutoAttack on cifar10 with epsilon 8 / 255
+setting parameters for standard version
+using standard version including apgd-ce, apgd-t, fab-t, square.
+initial accuracy: 58.86%
+apgd-ce - 1/12 - 186 out of 500 successfully perturbed
+apgd-ce - 2/12 - 183 out of 500 successfully perturbed
+apgd-ce - 3/12 - 185 out of 500 successfully perturbed
+apgd-ce - 4/12 - 182 out of 500 successfully perturbed
+apgd-ce - 5/12 - 164 out of 500 successfully perturbed
+apgd-ce - 6/12 - 159 out of 500 successfully perturbed
+apgd-ce - 7/12 - 181 out of 500 successfully perturbed
+apgd-ce - 8/12 - 182 out of 500 successfully perturbed
+apgd-ce - 9/12 - 210 out of 500 successfully perturbed
+apgd-ce - 10/12 - 192 out of 500 successfully perturbed
+apgd-ce - 11/12 - 186 out of 500 successfully perturbed
+apgd-ce - 12/12 - 135 out of 386 successfully perturbed
+robust accuracy after APGD-CE: 37.41% (total time 439.5 s)
+apgd-t - 1/8 - 111 out of 500 successfully perturbed
+apgd-t - 2/8 - 99 out of 500 successfully perturbed
+apgd-t - 3/8 - 99 out of 500 successfully perturbed
+apgd-t - 4/8 - 109 out of 500 successfully perturbed
+apgd-t - 5/8 - 114 out of 500 successfully perturbed
+apgd-t - 6/8 - 89 out of 500 successfully perturbed
+apgd-t - 7/8 - 96 out of 500 successfully perturbed
+apgd-t - 8/8 - 46 out of 241 successfully perturbed
+robust accuracy after APGD-T: 29.78% (total time 2500.2 s)
+fab-t - 1/6 - 0 out of 500 successfully perturbed
+fab-t - 2/6 - 0 out of 500 successfully perturbed
+fab-t - 3/6 - 0 out of 500 successfully perturbed
+fab-t - 4/6 - 0 out of 500 successfully perturbed
+fab-t - 5/6 - 0 out of 500 successfully perturbed
+fab-t - 6/6 - 0 out of 478 successfully perturbed
+robust accuracy after FAB-T: 29.78% (total time 6176.1 s)
+square - 1/6 - 0 out of 500 successfully perturbed
+square - 2/6 - 0 out of 500 successfully perturbed
+square - 3/6 - 0 out of 500 successfully perturbed
+square - 4/6 - 0 out of 500 successfully perturbed
+square - 5/6 - 0 out of 500 successfully perturbed
+square - 6/6 - 0 out of 478 successfully perturbed
+robust accuracy after SQUARE: 29.78% (total time 10921.9 s)
+max Linf perturbation: 0.03137, nan in tensor: 0, max: 1.00000, min: 0.00000
+robust accuracy: 29.78%
+AutoAttack robust accuracy: 29.78%

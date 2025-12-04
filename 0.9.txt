@@ -1,0 +1,35 @@
+(igdefense) PS C:\Users\p9181\Interpretability-Guided-Defense> python eval.py `
+>>   --arch rn18 `
+>>   --dataset cifar10 `
+>>   --load-model Addepalli2022Efficient_RN18.pt `
+>>   --mask-which conf `
+>>   --layer-name layer4 `
+>>   --important-dim 50 `
+>>   --epsilon 8 `
+>>   --data-dir ./data `
+>>   --batch-size 500 `
+>>   --n-ex 500 `
+>>   --conf-thresh 0.9 
+C:\Users\p9181\anaconda3\envs\igdefense\lib\site-packages\robustbench\loaders.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+Loading IG-def conf model of Addepalli2022Efficient_RN18.pt, retaining only 50 neurons in layer4
+using vanilla forward pass before masking
+Neuron importance loaded with method conf from folder saved_loir_rankings/Addepalli2022Efficient_RN18/layer4
+Loading weights from checkpoints\Addepalli2022Efficient_RN18.pt
+using 500 for evaluation
+Model: Addepalli2022Efficient_RN18_layer4_conf50, Clean accuracy: 60.80%
+AutoAttack on cifar10 with epsilon 8 / 255
+setting parameters for standard version
+using standard version including apgd-ce, apgd-t, fab-t, square.
+initial accuracy: 60.80%
+apgd-ce - 1/1 - 122 out of 304 successfully perturbed
+robust accuracy after APGD-CE: 36.40% (total time 21.4 s)
+apgd-t - 1/1 - 67 out of 182 successfully perturbed
+robust accuracy after APGD-T: 23.00% (total time 98.1 s)
+fab-t - 1/1 - 0 out of 115 successfully perturbed
+robust accuracy after FAB-T: 23.00% (total time 235.0 s)
+square - 1/1 - 1 out of 115 successfully perturbed
+robust accuracy after SQUARE: 22.80% (total time 406.1 s)
+max Linf perturbation: 0.03137, nan in tensor: 0, max: 1.00000, min: 0.00000
+robust accuracy: 22.80%
+AutoAttack robust accuracy: 22.80%

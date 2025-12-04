@@ -1,0 +1,131 @@
+(igdefense) PS C:\Users\p9181\Interpretability-Guided-Defense> python eval.py `
+>>   --arch rn18 `
+>>   --dataset cifar10 `
+>>   --load-model Addepalli2022Efficient_RN18.pt `
+>>   --mask-which none `
+>>   --layer-name layer4 `
+>>   --important-dim 50 `
+>>   --epsilon 8 `
+>>   --data-dir ./data `
+>>   --batch-size 250 `
+>>   --n-ex 10000
+C:\Users\p9181\anaconda3\envs\igdefense\lib\site-packages\robustbench\loaders.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+Loading base model Addepalli2022Efficient_RN18.pt
+using vanilla forward pass before masking
+Loading weights from checkpoints\Addepalli2022Efficient_RN18.pt
+using 10000 for evaluation
+Model: Addepalli2022Efficient_RN18_layer4_none50, Clean accuracy: 85.71%
+AutoAttack on cifar10 with epsilon 8 / 255
+setting parameters for standard version
+using standard version including apgd-ce, apgd-t, fab-t, square.
+initial accuracy: 85.71%
+apgd-ce - 1/35 - 96 out of 250 successfully perturbed
+apgd-ce - 2/35 - 85 out of 250 successfully perturbed
+apgd-ce - 3/35 - 90 out of 250 successfully perturbed
+apgd-ce - 4/35 - 83 out of 250 successfully perturbed
+apgd-ce - 5/35 - 77 out of 250 successfully perturbed
+apgd-ce - 6/35 - 82 out of 250 successfully perturbed
+apgd-ce - 7/35 - 92 out of 250 successfully perturbed
+apgd-ce - 8/35 - 74 out of 250 successfully perturbed
+apgd-ce - 9/35 - 93 out of 250 successfully perturbed
+apgd-ce - 10/35 - 92 out of 250 successfully perturbed
+apgd-ce - 11/35 - 80 out of 250 successfully perturbed
+apgd-ce - 12/35 - 79 out of 250 successfully perturbed
+apgd-ce - 13/35 - 88 out of 250 successfully perturbed
+apgd-ce - 14/35 - 92 out of 250 successfully perturbed
+apgd-ce - 15/35 - 74 out of 250 successfully perturbed
+apgd-ce - 16/35 - 90 out of 250 successfully perturbed
+apgd-ce - 17/35 - 79 out of 250 successfully perturbed
+apgd-ce - 18/35 - 97 out of 250 successfully perturbed
+apgd-ce - 19/35 - 90 out of 250 successfully perturbed
+apgd-ce - 20/35 - 90 out of 250 successfully perturbed
+apgd-ce - 21/35 - 85 out of 250 successfully perturbed
+apgd-ce - 22/35 - 84 out of 250 successfully perturbed
+apgd-ce - 23/35 - 85 out of 250 successfully perturbed
+apgd-ce - 24/35 - 83 out of 250 successfully perturbed
+apgd-ce - 25/35 - 92 out of 250 successfully perturbed
+apgd-ce - 26/35 - 81 out of 250 successfully perturbed
+apgd-ce - 27/35 - 71 out of 250 successfully perturbed
+apgd-ce - 28/35 - 85 out of 250 successfully perturbed
+apgd-ce - 29/35 - 102 out of 250 successfully perturbed
+apgd-ce - 30/35 - 85 out of 250 successfully perturbed
+apgd-ce - 31/35 - 85 out of 250 successfully perturbed
+apgd-ce - 32/35 - 82 out of 250 successfully perturbed
+apgd-ce - 33/35 - 87 out of 250 successfully perturbed
+apgd-ce - 34/35 - 97 out of 250 successfully perturbed
+apgd-ce - 35/35 - 20 out of 71 successfully perturbed
+robust accuracy after APGD-CE: 56.24% (total time 323.8 s)
+apgd-t - 1/23 - 20 out of 250 successfully perturbed
+apgd-t - 2/23 - 21 out of 250 successfully perturbed
+apgd-t - 3/23 - 17 out of 250 successfully perturbed
+apgd-t - 4/23 - 16 out of 250 successfully perturbed
+apgd-t - 5/23 - 17 out of 250 successfully perturbed
+apgd-t - 6/23 - 13 out of 250 successfully perturbed
+apgd-t - 7/23 - 10 out of 250 successfully perturbed
+apgd-t - 8/23 - 9 out of 250 successfully perturbed
+apgd-t - 9/23 - 15 out of 250 successfully perturbed
+apgd-t - 10/23 - 11 out of 250 successfully perturbed
+apgd-t - 11/23 - 14 out of 250 successfully perturbed
+apgd-t - 12/23 - 19 out of 250 successfully perturbed
+apgd-t - 13/23 - 10 out of 250 successfully perturbed
+apgd-t - 14/23 - 17 out of 250 successfully perturbed
+apgd-t - 15/23 - 26 out of 250 successfully perturbed
+apgd-t - 16/23 - 14 out of 250 successfully perturbed
+apgd-t - 17/23 - 13 out of 250 successfully perturbed
+apgd-t - 18/23 - 21 out of 250 successfully perturbed
+apgd-t - 19/23 - 26 out of 250 successfully perturbed
+apgd-t - 20/23 - 28 out of 250 successfully perturbed
+apgd-t - 21/23 - 16 out of 250 successfully perturbed
+apgd-t - 22/23 - 12 out of 250 successfully perturbed
+apgd-t - 23/23 - 7 out of 124 successfully perturbed
+robust accuracy after APGD-T: 52.52% (total time 2029.3 s)
+fab-t - 1/22 - 0 out of 250 successfully perturbed
+fab-t - 2/22 - 0 out of 250 successfully perturbed
+fab-t - 3/22 - 0 out of 250 successfully perturbed
+fab-t - 4/22 - 0 out of 250 successfully perturbed
+fab-t - 5/22 - 0 out of 250 successfully perturbed
+fab-t - 6/22 - 0 out of 250 successfully perturbed
+fab-t - 7/22 - 0 out of 250 successfully perturbed
+fab-t - 8/22 - 0 out of 250 successfully perturbed
+fab-t - 9/22 - 0 out of 250 successfully perturbed
+fab-t - 10/22 - 0 out of 250 successfully perturbed
+fab-t - 11/22 - 0 out of 250 successfully perturbed
+fab-t - 12/22 - 0 out of 250 successfully perturbed
+fab-t - 13/22 - 0 out of 250 successfully perturbed
+fab-t - 14/22 - 0 out of 250 successfully perturbed
+fab-t - 15/22 - 0 out of 250 successfully perturbed
+fab-t - 16/22 - 0 out of 250 successfully perturbed
+fab-t - 17/22 - 0 out of 250 successfully perturbed
+fab-t - 18/22 - 0 out of 250 successfully perturbed
+fab-t - 19/22 - 0 out of 250 successfully perturbed
+fab-t - 20/22 - 0 out of 250 successfully perturbed
+fab-t - 21/22 - 0 out of 250 successfully perturbed
+fab-t - 22/22 - 0 out of 2 successfully perturbed
+robust accuracy after FAB-T: 52.52% (total time 5401.7 s)
+square - 1/22 - 0 out of 250 successfully perturbed
+square - 2/22 - 0 out of 250 successfully perturbed
+square - 3/22 - 0 out of 250 successfully perturbed
+square - 4/22 - 0 out of 250 successfully perturbed
+square - 5/22 - 0 out of 250 successfully perturbed
+square - 6/22 - 0 out of 250 successfully perturbed
+square - 7/22 - 0 out of 250 successfully perturbed
+square - 8/22 - 0 out of 250 successfully perturbed
+square - 9/22 - 0 out of 250 successfully perturbed
+square - 10/22 - 0 out of 250 successfully perturbed
+square - 11/22 - 0 out of 250 successfully perturbed
+square - 12/22 - 0 out of 250 successfully perturbed
+square - 13/22 - 0 out of 250 successfully perturbed
+square - 14/22 - 0 out of 250 successfully perturbed
+square - 15/22 - 0 out of 250 successfully perturbed
+square - 16/22 - 0 out of 250 successfully perturbed
+square - 17/22 - 0 out of 250 successfully perturbed
+square - 18/22 - 0 out of 250 successfully perturbed
+square - 19/22 - 0 out of 250 successfully perturbed
+square - 20/22 - 0 out of 250 successfully perturbed
+square - 21/22 - 0 out of 250 successfully perturbed
+square - 22/22 - 0 out of 2 successfully perturbed
+robust accuracy after SQUARE: 52.52% (total time 9669.7 s)
+max Linf perturbation: 0.03137, nan in tensor: 0, max: 1.00000, min: 0.00000
+robust accuracy: 52.52%
+AutoAttack robust accuracy: 52.52%

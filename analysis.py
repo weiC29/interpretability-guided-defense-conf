@@ -88,7 +88,7 @@ transform_test = transforms.Compose([
 if args.data == 'CIFAR10' or args.data == 'CIFAR100':
     # testset = getattr(datasets, args.data)(root=args.data_path, train=False, download=True, transform=transform_test)
     testset = datasets.CIFAR10(args.data_path, train=False, transform=transform_test, download=True)
-test_loader = torch.utils.data.DataLoader(testset, batch_size=args.test_batch_size, shuffle=False, num_workers=2)
+test_loader = torch.utils.data.DataLoader(testset, batch_size=args.test_batch_size, shuffle=False, num_workers=0)
 
 if args.data == 'CIFAR10':
     NUM_CLASSES = 10
@@ -104,10 +104,26 @@ elif args.arch == 'wrn34_10':
     model = WideResNet34_10()
 
 model = model.cuda()
-model_dict = torch.load('checkpoints/' + args.trained_model)  
-print('Loading weights from', args.trained_model)
-model.load_state_dict(model_dict)
+
+ckpt_path = 'checkpoints/' + args.trained_model
+model_dict = torch.load(ckpt_path)
+print('Loading weights from', ckpt_path)
+
+# Some checkpoints are saved as {"state_dict": ...}
+state_dict = model_dict.get('state_dict', model_dict)
+
+# If keys start with "module.", strip that prefix
+from collections import OrderedDict
+first_key = next(iter(state_dict.keys()))
+if first_key.startswith('module.'):
+    new_state_dict = OrderedDict()
+    for k, v in state_dict.items():
+        new_state_dict[k[len("module."):]] = v
+    state_dict = new_state_dict
+
+model.load_state_dict(state_dict)
 model.eval()
+
 
 neuron_class_importance = load_neuron_importance(args.layer_name, args.trained_model, args.important_dim, NUM_CLASSES)
 neuron_class_importance = neuron_class_importance.detach().cpu().numpy()
@@ -209,61 +225,136 @@ eval(command)
 
 eps = 8 / 255
 
-steps=100
+# Make this small while debugging
+steps = 100 
 loss = nn.CrossEntropyLoss()
-acc=0
+acc = 0
 start_time = time.time()
-important_samecls_change = 0
-important_diffcls_change = 0
-important_advcls_change = 0
-unimportant_change = 0
+important_samecls_change = 0.0
+important_diffcls_change = 0.0
+important_advcls_change = 0.0
+unimportant_change = 0.0
 sample_count = 0
+
+def safe_rel_change(pre_vec, post_vec, idx):
+    """
+    pre_vec, post_vec: 1D arrays (length = layer_dim)
+    idx: array-like of indices
+    returns 0.0 if idx is empty or denominator is zero/NaN
+    """
+    idx = np.asarray(idx, dtype=np.int64)
+    if idx.size == 0:
+        return 0.0
+
+    before = pre_vec[idx]
+    after = post_vec[idx]
+
+    denom = before.mean()
+    if denom == 0 or np.isnan(denom):
+        return 0.0
+
+    num = (-before + after).mean()
+    return float(num / denom)
+
+
 for batch_idx, (inputs, targets) in enumerate(test_loader):
     data = inputs.cuda()
     target = targets.cuda()
-    
-    if batch_idx % 1000 == 0:
-        print('processed', batch_idx)
-        ### use this to run on 1000 samples (faster since the code is not optimized and has to run with batch size 1)
-        if batch_idx // 1000 == 1:
-            break
 
+   
+    if batch_idx % 100 == 0:
+        print('processed', batch_idx)
+    if batch_idx >= 1000:
+        break
+
+    # 1. Forward on clean image
     with torch.no_grad():
         pred = model(data)
         pred = torch.argmax(pred, dim=1)
         if pred == target:
-            preactivation_layer4 = activation[args.layer_name].cpu().numpy()
-            preactivation_layer4 = np.mean(preactivation_layer4[0], axis=(1, 2))
-            # print('correct predicted clean, class', pred.item())
+            preactivation_layer = activation[args.layer_name].cpu().numpy()
+            preactivation_layer = np.mean(preactivation_layer[0], axis=(1, 2))  # shape (layer_dim,)
             gt_label = target.cpu().numpy()[0]
         else:
-            # print('incorrect predicted clean')
+            # skip misclassified clean images
             continue
-    
-    with torch.enable_grad(): 
-        adv_img = GAMA_PGD(model,data.cuda(),target.cuda(),eps=eps,eps_iter=2*eps,bounds=np.array([[0,1],[0,1],[0,1]]),steps=steps,w_reg=50,lin=25,SCHED=[60,85],drop=10)
 
-    pred_adv = torch.argmax(model((adv_img)),dim=1)
-    if pred_adv!=targets.cuda():
-        postactivation_layer4 = activation[args.layer_name].cpu().numpy()
-        postactivation_layer4 = np.mean(postactivation_layer4[0], axis=(1, 2))
+    # 2. Craft adversarial example
+    with torch.enable_grad():
+        adv_img = GAMA_PGD(
+            model,
+            data.cuda(),
+            target.cuda(),
+            eps=eps,
+            eps_iter=2 * eps,
+            bounds=np.array([[0, 1], [0, 1], [0, 1]]),
+            steps=steps,
+            w_reg=50,
+            lin=25,
+            SCHED=[60, 85],
+            drop=10
+        )
 
+    # 3. Check if attack succeeds
+    pred_adv = torch.argmax(model(adv_img), dim=1)
+    if pred_adv != target:
+        postactivation_layer = activation[args.layer_name].cpu().numpy()
+        postactivation_layer = np.mean(postactivation_layer[0], axis=(1, 2))  # shape (layer_dim,)
+
+        # Indices of important neurons
         important_samecls_idx = neuron_class_importance[gt_label]
         important_advcls_idx = neuron_class_importance[pred_adv.cpu().numpy()[0]]
 
-        important_diffcls_idx = np.array(list(set(list(neuron_class_importance.reshape(-1))) - set(list(neuron_class_importance[gt_label])) - set(list(neuron_class_importance[pred_adv.cpu().numpy()[0]]))))
-        unimportant_idx = np.array(list(set(range(512)) - set(list(neuron_class_importance.reshape(-1)))))
+        # Flatten once for convenience
+        all_important = neuron_class_importance.reshape(-1)
 
+        # indices that are important for *some* class but not GT or adv class
+        important_diffcls_idx = np.array(
+            list(
+                set(all_important)
+                - set(important_samecls_idx)
+                - set(important_advcls_idx)
+            ),
+            dtype=np.int64,
+        )
 
-        important_samecls_change += np.mean(-preactivation_layer4[important_samecls_idx] + postactivation_layer4[important_samecls_idx]) / np.mean(preactivation_layer4[important_samecls_idx])
-        important_advcls_change += np.mean(-preactivation_layer4[important_advcls_idx] + postactivation_layer4[important_advcls_idx]) / np.mean(preactivation_layer4[important_advcls_idx])
-        important_diffcls_change += np.mean(-preactivation_layer4[important_diffcls_idx] + postactivation_layer4[important_diffcls_idx]) / np.mean(preactivation_layer4[important_diffcls_idx])
-        unimportant_change += np.mean(-preactivation_layer4[unimportant_idx] + postactivation_layer4[unimportant_idx]) / np.mean(preactivation_layer4[unimportant_idx])
+        # dimension of the layer (e.g., 512), inferred from activation vector length
+        layer_dim = preactivation_layer.shape[0]
+
+        # indices that are never important for any class
+        unimportant_idx = np.array(
+            list(set(range(layer_dim)) - set(all_important)),
+            dtype=np.int64,
+        )
+
+        # Debug: only print sizes on the first successful adversarial example
+        if sample_count == 0:
+            print("len GT idx:", len(important_samecls_idx))
+            print("len adv idx:", len(important_advcls_idx))
+            print("len diff idx:", len(important_diffcls_idx))
+            print("len unimportant idx:", len(unimportant_idx))
+
+        # 4. Accumulate relative changes using the safe helper
+        important_samecls_change  += safe_rel_change(
+            preactivation_layer, postactivation_layer, important_samecls_idx
+        )
+        important_advcls_change   += safe_rel_change(
+            preactivation_layer, postactivation_layer, important_advcls_idx
+        )
+        important_diffcls_change  += safe_rel_change(
+            preactivation_layer, postactivation_layer, important_diffcls_idx
+        )
+        unimportant_change        += safe_rel_change(
+            preactivation_layer, postactivation_layer, unimportant_idx
+        )
 
         sample_count += 1
 
-print(f'average change in GT class activation: {(important_samecls_change / sample_count) * 100.0:.2f}%')
-print(f'average change in post-attack class activation: {(important_advcls_change / sample_count) * 100.0:.2f}%')
-print(f'average change in remaining class activation: {(important_diffcls_change / sample_count) * 100.0:.2f}%')
-print(f'average change in unimportant neuron activations: {(unimportant_change / sample_count) * 100.0:.2f}%')
-
+# 5. Final summary
+if sample_count == 0:
+    print("No successful adversarial misclassifications found in the sampled data.")
+else:
+    print(f'average change in GT class activation: {(important_samecls_change / sample_count) * 100.0:.6f}%')
+    print(f'average change in post-attack class activation: {(important_advcls_change / sample_count) * 100.0:.6f}%')
+    print(f'average change in remaining class activation: {(important_diffcls_change / sample_count) * 100.0:.6f}%')
+    print(f'average change in unimportant neuron activations: {(unimportant_change / sample_count) * 100.0:.6f}%')
